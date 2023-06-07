@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/google/osv-scanner/pkg/osv"
 	"github.com/google/osv-scanner/pkg/osvscanner"
 	"github.com/google/osv-scanner/pkg/reporter"
 
@@ -14,7 +15,7 @@ import (
 
 var (
 	// Update this variable when doing a release
-	version = "1.3.3"
+	version = "1.3.4"
 	commit  = "n/a"
 	date    = "n/a"
 )
@@ -23,9 +24,12 @@ func run(args []string, stdout, stderr io.Writer) int {
 	var r reporter.Reporter
 
 	cli.VersionPrinter = func(ctx *cli.Context) {
-		r = reporter.NewTableReporter(stdout, stderr, false)
+		// Use the app Writer and ErrWriter since they will be the writers to keep parallel tests consistent
+		r = reporter.NewTableReporter(ctx.App.Writer, ctx.App.ErrWriter, false)
 		r.PrintText(fmt.Sprintf("osv-scanner version: %s\ncommit: %s\nbuilt at: %s\n", ctx.App.Version, commit, date))
 	}
+
+	osv.RequestUserAgent = "osv-scanner/" + version
 
 	app := &cli.App{
 		Name:      "osv-scanner",
